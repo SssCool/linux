@@ -137,84 +137,82 @@ tar -xzvf archive.tar.gz
 - Extract the archive `logs.tar.gz` into `/var/tmp/`.
 
 ---
+## 4. Disk extend and attach
 
-## 4. Expanding an Existing Disk
 
-### Command: `lvextend` and `resize2fs`
-#### Example: Extend a Logical Volume (LVM)
+Extending Disk
+
+1. Verify hardware level disk expansion:
 ```bash
-lvextend -L +10G /dev/vg01/lv01
-resize2fs /dev/vg01/lv01
+fdisk -l
 ```
-**lvextend**: The command to extend a logical volume.
 
-**-L +10G**: Increase the size of the logical volume by 10GB.
-
-**/dev/vg01/lv01**: The logical volume to be extended.
-
-**resize2fs**: The command to resize the filesystem on the logical volume.
-
-**/dev/vg01/lv01**: The logical volume whose filesystem will be resized.
-
-#### Exercise:
-- Increase the size of `/dev/vg01/data` by 5GB and resize its filesystem.
-
----
-
-## 5. Adding a Disk and Mounting to a Path
-
-### Command: `mkfs.ext4` and `mount`
-#### Example: Add a New Disk
+2. Check volume information:
 ```bash
+vgs    # Lists volume groups
+lvs    # Lists logical volumes
+```
+
+3. Extend the physical partition:
+```bash
+growpart /dev/sda 1    # Replace sda with your disk and 1 with partition number
+```
+
+4. Extend the Physical Volume:
+```bash
+pvresize /dev/sda1    # Replace with your partition
+```
+
+5. Extend the Logical Volume:
+```bash
+lvextend -l +100%FREE /dev/mapper/vg-name-lv-name    # Replace with your VG and LV names
+```
+
+6. Resize the filesystem:
+```bash
+# For ext4 filesystem:
+resize2fs /dev/mapper/vg-name-lv-name    
+# OR for XFS filesystem:
+xfs_growfs /dev/mapper/vg-name-lv-name   
+```
+
+## Attaching New Disk
+
+1. Verify the new disk is visible:
+```bash
+fdisk -l
+```
+
+2. Create a new partition:
+```bash
+fdisk /dev/sdb
+# Press 'n' for new partition
+# Press 'p' for primary
+# Accept defaults for partition number and sectors
+# Press 'w' to write changes
+```
+
+3. Format the partition:
+```bash
+# For ext4:
 mkfs.ext4 /dev/sdb1
-mount /dev/sdb1 /mnt/mydisk
+# OR for XFS:
+mkfs.xfs /dev/sdb1
 ```
-**mkfs.ext4**: The command to create an ext4 filesystem on a partition.
 
-**/dev/sdb1**: The partition to be formatted.
-
-**mount**: The command to attach a filesystem to a directory.
-
-**/dev/sdb1**: The partition to be mounted.
-
-**/mnt/mydisk**: The directory where the partition will be mounted.
-
-#### Exercise:
-- Format `/dev/sdc1` with the ext4 filesystem and mount it to `/mnt/storage/`.
-
----
-
-## 6. Filesystem Checks and Repairs
-
-### Command: `fsck`
-#### Example: Check and Repair a Filesystem
+4. Create mount point and mount:
 ```bash
-fsck /dev/sda1
+mkdir /mnt/db_data
+mount /dev/sdb1 /mnt/db_data
 ```
-**fsck**: The command to check and repair a filesystem.
 
-**/dev/sda1**: The partition to be checked and repaired.
-
-#### Exercise:
-- Check and repair the filesystem on `/dev/sdb2`.
-
----
-
-## 7. Quota Examples
-
-### Command: `quotacheck`, `quotaon`, and `edquota`
-#### Example: Set Up Disk Quotas
+5. Add to /etc/fstab for permanent mounting:
 ```bash
-quotacheck -cug /mnt/data
-quotaon /mnt/data
-edquota -u username
+echo "/dev/sdb1 /mnt/new_disk ext4 defaults 0 0" >> /etc/fstab
 ```
-#### Exercise:
-- Enable user and group quotas on `/home/` and edit quotas for `john_doe`.
 
----
 
-## 8. Rsync and Timeshift
+## 5. Rsync and Timeshift
 
 ### Command: `rsync`
 #### Example 1: Backup with rsync
