@@ -155,24 +155,24 @@ lvs    # Lists logical volumes
 
 3. Extend the physical partition:
 ```bash
-growpart /dev/sda 1    # Replace sda with your disk and 1 with partition number
+growpart /dev/sda 1    
 ```
 
 4. Extend the Physical Volume:
 ```bash
-pvresize /dev/sda1    # Replace with your partition
+pvresize /dev/sda1    
 ```
 
 5. Extend the Logical Volume:
 ```bash
-lvextend -l +100%FREE /dev/mapper/vg-name-lv-name    # Replace with your VG and LV names
+lvextend -l +100%FREE /dev/mapper/vg-name-lv-name    
 ```
 
 6. Resize the filesystem:
 ```bash
-# For ext4 filesystem:
+# ext4 filesystem:
 resize2fs /dev/mapper/vg-name-lv-name    
-# OR for XFS filesystem:
+# XFS filesystem:
 xfs_growfs /dev/mapper/vg-name-lv-name   
 ```
 
@@ -194,9 +194,9 @@ fdisk /dev/sdb
 
 3. Format the partition:
 ```bash
-# For ext4:
+# ext4:
 mkfs.ext4 /dev/sdb1
-# OR for XFS:
+# XFS:
 mkfs.xfs /dev/sdb1
 ```
 
